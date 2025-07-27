@@ -124,3 +124,16 @@
       color: #aaa;
       background: #f8f8f8;
     }
+
+    .linkButton {
+        display: block;               /* block so it takes full width */
+        width: 80%;                   /* 80% of container */
+        margin: 12px auto 0;          /* top margin + horizontal auto centers it */
+        padding: 10px 20px;
+        background-color: #007BFF;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        text-align: center;           /* keep button text centered */
+    }
