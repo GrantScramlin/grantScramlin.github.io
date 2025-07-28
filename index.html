@@ -62,10 +62,10 @@
     <section id="book">
       <h2>Book a Session</h2>
       <form class="booking-form" id="booking-form">
-        <input type="text" id="name" name="student_name" placeholder="Student Name" required />
-        <input type="text" id="name" name="parent_name" placeholder="Parent/Guardian Name" required />
-        <input type="email" id="email" name="parent_email" placeholder="Parent/Guardian Email" required />
-        <input type="email" id="email" name="student_email" placeholder="Student Email (optional)"  />
+        <input type="text" id="student" name="student_name" placeholder="Student Name" required />
+        <input type="text" id="parent" name="parent_name" placeholder="Parent/Guardian Name" required />
+        <input type="email" id="p_email" name="parent_email" placeholder="Parent/Guardian Email" required />
+        <input type="email" id="s_email" name="student_email" placeholder="Student Email (optional)"  />
         <select id="subject" name="subject" required>
           <option value="" disabled selected>Which topics do you want to learn?</option>
           <option value="general">Unsure/General Programming</option>
@@ -127,45 +127,61 @@
         }, 5000); // Adjust as needed
       });
     });
-</script>
+  </script>
 
   <script>
-    const timeSlots = ["16:30", "17:00", "17:30", "18:00"];
+    document.addEventListener('DOMContentLoaded', async () => {
+      const timeSlots = ["16:30", "17:00", "17:30", "18:00"];
+      let bookedSlots = [];
 
-    async function initDatePicker() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbxfGi6-Chdy1A9X5qyBMwqvyMg6ev1Jtor-dG1W7nuZsmtGZ6N8nZ9qKg7NtA-biVAShg/exec");
-      const bookings = await res.json();
-    
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxfGi6-Chdy1A9X5qyBMwqvyMg6ev1Jtor-dG1W7nuZsmtGZ6N8nZ9qKg7NtA-biVAShg/exec");
+        bookedSlots = await res.json();
+      } catch (err) {
+        console.error("Booking fetch failed", err);
+        bookedSlots = []; // fallback to allow all days
+      }
+
       const slotCountByDate = {};
-      bookings.forEach(({ date, time }) => {
-        const d = new Date(date).toISOString().split('T')[0]; // YYYY-MM-DD
+      bookedSlots.forEach(({ date, time }) => {
+        const d = new Date(date).toISOString().split('T')[0];
         if (!slotCountByDate[d]) slotCountByDate[d] = new Set();
         slotCountByDate[d].add(time);
       });
-    
+
       const fullyBookedDates = Object.entries(slotCountByDate)
         .filter(([_, times]) => times.size >= timeSlots.length)
         .map(([date]) => date);
-    
+
       flatpickr("#date", {
         dateFormat: "Y-m-d",
         minDate: "today",
-        maxDate: new Date().fp_incr(30), // 30 days out
+        maxDate: new Date().fp_incr(30),
         disable: [
           function (date) {
             const day = date.getDay();
             const iso = date.toISOString().split('T')[0];
-            const isValidDay = day === 1 || day === 3 || day === 5; // Mon/Wed/Fri
-            return !isValidDay || fullyBookedDates.includes(iso);
+            return ![1, 3, 5].includes(day) || fullyBookedDates.includes(iso);
           }
         ]
       });
-    
-      // Store for time filtering
-      window.bookedSlots = bookings;
-    }
 
-    initDatePicker();
+      // Enable/disable times based on selection
+      const dateInput = document.getElementById("date");
+      const timeSelect = document.getElementById("time");
+
+      dateInput.addEventListener("change", () => {
+        const selectedDate = dateInput.value;
+        const takenTimes = bookedSlots
+          .filter(slot => slot.date === selectedDate)
+          .map(slot => slot.time);
+
+        [...timeSelect.options].forEach(option => {
+          if (!option.value) return;
+          option.disabled = takenTimes.includes(option.value);
+        });
+      });
+    });
   </script>
 
   <script>
@@ -175,7 +191,7 @@
     let bookedSlots = [];
 
     // Fetch booked slots from Google Sheets via Apps Script GET endpoint
-    fetch("https://script.google.com/macros/s/AKfycbxfGi6-Chdy1A9X5qyBMwqvyMg6ev1Jtor-dG1W7nuZsmtGZ6N8nZ9qKg7NtA-biVAShg/exec")
+    fetch("https://script.google.com/macros/s/AKfycbwR0NGkqYq8bG3lulljKi5zY7KDSlEDcN4XV4ZUEs4nZVYcOczq4wkjxD4ufhVGtsfdAQ/exec")
       .then(res => res.json())
       .then(data => {
         bookedSlots = data;
@@ -204,6 +220,8 @@
 
       const form = e.target;
       const formData = new FormData(form);
+
+
 
       const response = await fetch("https://script.google.com/macros/s/AKfycbxfGi6-Chdy1A9X5qyBMwqvyMg6ev1Jtor-dG1W7nuZsmtGZ6N8nZ9qKg7NtA-biVAShg/exec", {
         method: "POST",
