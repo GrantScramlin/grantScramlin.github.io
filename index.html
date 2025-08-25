@@ -80,12 +80,17 @@
   </section>
 
     <section id="book">
-      <h2>Book a Session</h2>
+      <h2>Book an Intro Session</h2>
       <form class="booking-form" id="booking-form">
         <input type="text" id="student" name="student_name" placeholder="Student Name" required />
-        <input type="text" id="parent" name="parent_name" placeholder="Parent/Guardian Name" required />
-        <input type="email" id="p_email" name="parent_email" placeholder="Parent/Guardian Email" required />
-        <input type="email" id="s_email" name="student_email" placeholder="Student Email (optional)"  />
+        <input type="number" placeholder="Student Age" id="age" name="age" min="5" max="99" required />
+        <div id="parent-fields" hidden>
+          <input type="text" id="parent" name="parent_name" placeholder="Parent/Guardian Name" />
+          <input type="email" id="p_email" name="parent_email" placeholder="Parent/Guardian Email" />
+        </div>
+        <div id="student-fields">
+          <input type="email" id="s_email" name="student_email" placeholder="Student Email" required />
+        </div>
         <select id="subject" name="subject" required>
           <option value="" disabled selected>Which topics do you want to learn?</option>
           <option value="general">Unsure/General Programming</option>
@@ -130,6 +135,38 @@
       <p>Email: <a href="mailto:grantscramlin@gmail.com">grantscramlin@gmail.com</a></p>
     </section>
   </div>
+
+  <script>
+    const ageInput = document.getElementById("age");
+    const parentName = document.getElementById("parent");
+    const parentEmail = document.getElementById("p_email");
+    const studentEmail = document.getElementById("s_email");
+
+    function toggleParentFields() {
+      const age = parseInt(ageInput.value, 10);
+
+      if (!isNaN(age)) {
+        if (age >= 18) {
+          parentName.parentElement.style.display = "none";
+          parentEmail.parentElement.style.display = "none";
+          studentEmail.parentElement.style.display = "block";
+          parentName.required = false;
+          parentEmail.required = false;
+          studentEmail.required = true;
+        } else {
+          parentName.parentElement.style.display = "block";
+          parentEmail.parentElement.style.display = "block";
+          studentEmail.parentElement.style.display = "none";
+          parentName.required = true;
+          parentEmail.required = true;
+          studentEmail.required = false;
+        }
+      }
+    }
+
+    ageInput.addEventListener("input", toggleParentFields);
+  </script>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
